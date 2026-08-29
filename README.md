@@ -5,7 +5,7 @@
  - Segment display to display time
 
 ## Colors of the time of the day: 
- | Pora             | HEX       | RGB           |
+ | Time             | HEX       | RGB           |
  | ---------------- | --------- | ------------- |
  | **Morning**      | `#FFAA00` | `255, 170, 0` |
  | **Late morning** | `#00AAFF` | `0, 170, 255` |
