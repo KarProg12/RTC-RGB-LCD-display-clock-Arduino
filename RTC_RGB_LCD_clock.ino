@@ -66,19 +66,23 @@ void setColor(int red, int green, int blue) {
 }
 
 void displayTime() {
-  //time displaying
+  //time displaying in serial monitor
   addZeroIfNumNotTen(hour());
   Serial.print(":");
   addZeroIfNumNotTen(minute());
   Serial.print(" | ");
 
-  //date displaying
+  //date displaying in serial monitor 
   addZeroIfNumNotTen(day());
   Serial.print(".");
   addZeroIfNumNotTen(month());
   Serial.print(".");
   addZeroIfNumNotTen(year());
   Serial.println("");
+
+  //time displaying on LCD
+
+  //date displaying on LCD
 
 }
 
