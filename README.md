@@ -1,6 +1,6 @@
 # Arduino-RTC-RGB-segment-display-clock
 ## Components:
- - RTC (Real Time Clock) module
+ - RTC (Real Time Clock) module (I use Time library directly on Arduino board using board's processor clock)
  - RGB (common cathode) diode to show what time of the day is
  - Segment display to display time
 
