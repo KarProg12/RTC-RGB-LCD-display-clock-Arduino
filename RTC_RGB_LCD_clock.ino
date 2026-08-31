@@ -27,7 +27,7 @@ void setup() {
 
   //extract day, month, year from computer's date (__DATE__)
   int d = cstr2int(__DATE__ + 4);
-  int yr = cstr2int(__DATE__ + 7);
+  int yr = cstr2int(__DATE__ + 9);
   int mo = 1;
 
   //automatic align of the month from PC (e.g. "Aug") to (e.g. 8)
