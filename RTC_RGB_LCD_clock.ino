@@ -12,7 +12,7 @@ int powerSourceSwichTimeout = 10;
 
 LiquidCrystal lcd(12, 6, 5, 4, 3, 2);
 
-
+ 
 void setup() {
   
   Serial.begin(9600);
@@ -43,13 +43,25 @@ void setup() {
   }
 
   //set time fetched form computer's time & date obtianed in time of compilation
-  setTime(hr, min, sec, d, mo, yr);
+  //setTime(hr, min, sec, d, mo, yr);
 
 }
 
 void loop() {
   //for common anode 255 == LOW, 0 == HIGH, for common cathode 255 == HIGH, 0 == LOW
   setColor(0, 255, 255);
+  //check if pc send new time through serial
+  if (Serial.available()) {
+    time_t pctime = 0;
+    //waiting for special sign at the beggining (e.g. letter 'T' and after it timestamp)
+    if (Serial.find("timeSet/")) {
+      pctime = Serial.parseInt();
+      //verify date accuracy (year > 2013)
+      if (pctime >= 1357041600UL)
+        setTime(pctime); //set new time in Arduino
+        Serial.println(" | Time synced!");
+    }
+  }
 
   //I could do it with delay(60000) (60000ms = 1min), but delay stops the program for minute
   //so I check if minute has changed and then instantly Arduino prints time with next minute
