@@ -1,75 +1,55 @@
-#include <TimeLib.h>
+#include <RtcDS1302.h>
+#include <ThreeWire.h>
 #include <LiquidCrystal.h>
 
 #define redPin 9
 #define greenPin 10
 #define bluePin 11
 
-//variable to ensure, that time in serial port change only once per minute 
-int lastMin = -1;
-//extra seconds to swich power source e.g. from computer to powerbank
-int powerSourceSwichTimeout = 10;
-
+//LCD
 LiquidCrystal lcd(12, 6, 5, 4, 3, 2);
+//Rtc
+ThreeWire myWire(13, 8, 7); //DAT, CLK, RST
+RtcDS1302<ThreeWire> Rtc(myWire); //Rtc object
+int lastMin = -1;
+int compilationTime = 6; 
 
- 
+
 void setup() {
   
   Serial.begin(9600);
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+  //LCD
   lcd.begin(16, 2);
+  //Rtc
+  Rtc.Begin();
 
-  //AUTO TIME SYNC:
-  //extract the hour, minute, and second from the computer's compilation time (__TIME__)
-  int hr = cstr2int(__TIME__);
-  int min = cstr2int(__TIME__ + 3);
-  //add 10 seconds to eliminate compilation time 
-  int sec = cstr2int(__TIME__ + 6) + powerSourceSwichTimeout;
- 
-  //extract day, month, year from computer's date (__DATE__)
-  int d = cstr2int(__DATE__ + 4);
-  int yr = cstr2int(__DATE__ + 9);
-  int mo = 1;
- 
-  //automatic align of the month from PC (e.g. "Aug") to (e.g. 8)
-  const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-  for (int i = 0; i < 12; i++) {
-    if (strncmp(__DATE__, months[i], 3) == 0) {
-      mo = i + 1;
-      break;
-    }
+  if (Rtc.GetIsWriteProtected()) {
+    Rtc.SetIsWriteProtected(false);
+  } 
+
+  if (!Rtc.GetIsRunning()) {
+    Rtc.SetIsRunning(true);   
   }
 
-  //set time fetched form computer's time & date obtianed in time of compilation
-  //setTime(hr, min, sec, d, mo, yr);
+  //TIME SETTING: 
+  //pull date and time from pc's clock
+  RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+
+  if (!Rtc.IsDateTimeValid()) {
+    RtcDateTime eliminatedCompilationTime = compiled + compilationTime;
+    Rtc.SetDateTime(eliminatedCompilationTime);
+  }
 
 }
 
 void loop() {
   //for common anode 255 == LOW, 0 == HIGH, for common cathode 255 == HIGH, 0 == LOW
-  setColor(0, 255, 255);
-  //check if pc send new time through serial
-  if (Serial.available()) {
-    time_t pctime = 0;
-    //waiting for special sign at the beggining (e.g. letter 'T' and after it timestamp)
-    if (Serial.find("timeSet/")) {
-      pctime = Serial.parseInt();
-      //verify date accuracy (year > 2013)
-      if (pctime >= 1357041600UL)
-        setTime(pctime); //set new time in Arduino
-        Serial.println(" | Time synced!");
-    }
-  }
+  setColor(255, 255, 255);
+  displayTime();
 
-  //I could do it with delay(60000) (60000ms = 1min), but delay stops the program for minute
-  //so I check if minute has changed and then instantly Arduino prints time with next minute
-  if (minute() != lastMin) {
-    lastMin = minute(); //save current minute
-    lcd.clear();
-    displayTime();             
-  }
 }
 
 void setColor(int red, int green, int blue) {
@@ -82,57 +62,37 @@ void setColor(int red, int green, int blue) {
 
 void displayTime() {
   //time displaying in serial monitor
-  serialAddZero(hour());
-  Serial.print(":");
-  serialAddZero(minute());
-  Serial.print(" | ");
+  RtcDateTime now = Rtc.GetDateTime();
 
-  //date displaying in serial monitor 
-  serialAddZero(day());
-  Serial.print(".");
-  serialAddZero(month());
-  Serial.print(".");
-  Serial.print(year());
+  if (now.Minute() != lastMin) {
+    lastMin = now.Minute(); //save current minute
+    
+    lcd.clear();
 
   //time displaying on LCD
   lcd.setCursor(5, 0);
-  lcdAddZero(hour());
+  lcdAddZero(now.Hour());
   lcd.print(":");
-  lcdAddZero(minute());
-
+  lcdAddZero(now.Minute());
+ 
   //date displaying on LCD
   lcd.setCursor(3, 1);
-  lcdAddZero(day());
+  lcdAddZero(now.Day());
   lcd.print(".");
-  lcdAddZero(month());
+  lcdAddZero(now.Month());
   lcd.print(".");
-  lcd.print(year());
-
+  lcd.print(now.Year());
+  }
 }
 
-//func that adds 0 before numbers if those are lower than 10
-void serialAddZero(int num) {
-
-  if (num < 10) { 
-    Serial.print('0');
-  }
-  Serial.print(num);
+void rtcSetTime(int hour, int minute, int second, int day, int month, int year) {
+  RtcDateTime dateTime(year, month, day, hour, minute, second);
+  Rtc.SetDateTime(dateTime);
 }
 
 void lcdAddZero(int num) {
-
-  if (num < 10) { 
+  if (num < 10) {
     lcd.print('0');
   }
   lcd.print(num);
-}
-
-//func that processes inner compiler text e.g. "17" to e.g. 17
-int cstr2int(const char *str) {
-  int number = 0;
-  while (*str >= '0' && *str <= '9') {
-    number = number * 10 + (*str - '0');
-    str++;
-  }
-  return number;
 }
