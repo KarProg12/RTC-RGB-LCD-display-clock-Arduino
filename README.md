@@ -1,4 +1,10 @@
 # Arduino-RTC-RGB-segment-display-clock
+## To-Do list: 
+- [x] Create best-working clock with DS1302 RTC.
+- [x] RTC works even through it's cutted of power. 
+- [ ] Add displaying unique RGB color for each time of the day.
+- [ ] Test if RGB is changing its color at each time of day.
+
 ## Components:
  - RTC (Real Time Clock) module
  - RGB (common anode) diode to show what time of the day is
