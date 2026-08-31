@@ -18,7 +18,6 @@ void setup() {
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
   lcd.begin(16, 2);
-  lcd.print("Test log");
 
   //AUTO TIME SYNC:
   //extract the hour, minute, and second from the computer's compilation time (__TIME__)
@@ -53,6 +52,7 @@ void loop() {
   //so I check if minute has changed and then instantly Arduino prints time with next minute
   if (minute() != lastMin) {
     lastMin = minute(); //save current minute
+    lcd.clear();
     displayTime();             
   }
 }
@@ -67,40 +67,57 @@ void setColor(int red, int green, int blue) {
 
 void displayTime() {
   //time displaying in serial monitor
-  addZeroIfNumNotTen(hour());
+  serialAddZero(hour());
   Serial.print(":");
-  addZeroIfNumNotTen(minute());
+  serialAddZero(minute());
   Serial.print(" | ");
 
   //date displaying in serial monitor 
-  addZeroIfNumNotTen(day());
+  serialAddZero(day());
   Serial.print(".");
-  addZeroIfNumNotTen(month());
+  serialAddZero(month());
   Serial.print(".");
-  addZeroIfNumNotTen(year());
-  Serial.println("");
+  Serial.print(year());
 
   //time displaying on LCD
+  lcd.setCursor(5, 0);
+  lcdAddZero(hour());
+  lcd.print(":");
+  lcdAddZero(minute());
 
   //date displaying on LCD
+  lcd.setCursor(3, 1);
+  lcdAddZero(day());
+  lcd.print(".");
+  lcdAddZero(month());
+  lcd.print(".");
+  lcd.print(year());
 
 }
 
 //func that adds 0 before numbers if those are lower than 10
-void addZeroIfNumNotTen(int num) {
+void serialAddZero(int num) {
 
-  if (num < 10) Serial.print('0');
+  if (num < 10) { 
+    Serial.print('0');
+  }
   Serial.print(num);
-
 }
 
-// NOWA FUNKCJA POMOCNICZA:
-// Przetwarza wewnętrzny tekst kompilatora (np. "17") na prawdziwą liczbę int (17)
+void lcdAddZero(int num) {
+
+  if (num < 10) { 
+    lcd.print('0');
+  }
+  lcd.print(num);
+}
+
+//func that processes inner compiler text e.g. "17" to e.g. 17
 int cstr2int(const char *str) {
-  int numer = 0;
+  int number = 0;
   while (*str >= '0' && *str <= '9') {
-    numer = numer * 10 + (*str - '0');
+    number = number * 10 + (*str - '0');
     str++;
   }
-  return numer;
+  return number;
 }
