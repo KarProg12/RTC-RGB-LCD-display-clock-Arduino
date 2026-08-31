@@ -26,18 +26,20 @@ void setup() {
   //Rtc
   Rtc.Begin();
 
-  if (Rtc.GetIsWriteProtected()) {
-    Rtc.SetIsWriteProtected(false);
-  } 
+  //'unlock' DS1302 memory lock to be able to update time in clock's memory
+  if (Rtc.GetIsWriteProtected())  Rtc.SetIsWriteProtected(false); 
 
-  if (!Rtc.GetIsRunning()) {
-    Rtc.SetIsRunning(true);   
-  }
+  //check if RTC's inner oscilator isn't running and if it's true (if it is NOT running)
+  //set it to running/true/ON so it'll be still measuring time even though it has no power
+  //RTC requires pill-shaped battery for inner oscilator to work  
+  if (!Rtc.GetIsRunning())  Rtc.SetIsRunning(true);   
 
   //TIME SETTING: 
   //pull date and time from pc's clock
   RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
 
+  //checks if time & date is NOT valid and then synces the time & date 
+  //and adds 6 seconds to eliminate latency caused by compilation & uploading time  
   if (!Rtc.IsDateTimeValid()) {
     RtcDateTime eliminatedCompilationTime = compiled + compilationTime;
     Rtc.SetDateTime(eliminatedCompilationTime);
@@ -65,17 +67,17 @@ void displayTime() {
   RtcDateTime now = Rtc.GetDateTime();
 
   if (now.Minute() != lastMin) {
-    lastMin = now.Minute(); //save current minute
+    lastMin = now.Minute(); //save current minute as last minute
     
     lcd.clear();
 
-  //time displaying on LCD
+  //display time on LCD
   lcd.setCursor(5, 0);
   lcdAddZero(now.Hour());
   lcd.print(":");
   lcdAddZero(now.Minute());
  
-  //date displaying on LCD
+  //display date on LCD
   lcd.setCursor(3, 1);
   lcdAddZero(now.Day());
   lcd.print(".");
@@ -83,16 +85,23 @@ void displayTime() {
   lcd.print(".");
   lcd.print(now.Year());
   }
+
 }
 
+//function that makes it easier to set time on rtc 'cause it has time & date in better order than Makuna's Rtc.setDateTime()  
 void rtcSetTime(int hour, int minute, int second, int day, int month, int year) {
-  RtcDateTime dateTime(year, month, day, hour, minute, second);
-  Rtc.SetDateTime(dateTime);
+  
+  RtcDateTime dateAndTime(year, month, day, hour, minute, second);
+  Rtc.SetDateTime(dateAndTime);
+
 }
 
+//fuction that adds zero tu numbers below 10 (don't use it in year displaying 'cause it makes no sense (for now at least XD))
 void lcdAddZero(int num) {
+  
   if (num < 10) {
     lcd.print('0');
   }
   lcd.print(num);
+
 }
