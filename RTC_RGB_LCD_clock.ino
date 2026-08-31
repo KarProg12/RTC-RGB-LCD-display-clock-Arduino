@@ -7,6 +7,8 @@
 
 //variable to ensure, that time in serial port change only once per minute 
 int lastMin = -1;
+//extra seconds to swich power source e.g. from computer to powerbank
+int powerSourceSwichTimeout = 10;
 
 LiquidCrystal lcd(12, 6, 5, 4, 3, 2);
 
@@ -23,13 +25,14 @@ void setup() {
   //extract the hour, minute, and second from the computer's compilation time (__TIME__)
   int hr = cstr2int(__TIME__);
   int min = cstr2int(__TIME__ + 3);
-  int sec = cstr2int(__TIME__ + 6);
-
+  //add 10 seconds to eliminate compilation time 
+  int sec = cstr2int(__TIME__ + 6) + powerSourceSwichTimeout;
+ 
   //extract day, month, year from computer's date (__DATE__)
   int d = cstr2int(__DATE__ + 4);
   int yr = cstr2int(__DATE__ + 9);
   int mo = 1;
-
+ 
   //automatic align of the month from PC (e.g. "Aug") to (e.g. 8)
   const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
   for (int i = 0; i < 12; i++) {
