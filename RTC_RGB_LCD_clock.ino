@@ -48,17 +48,55 @@ void setup() {
 }
 
 void loop() {
-  //for common anode 255 == LOW, 0 == HIGH, for common cathode 255 == HIGH, 0 == LOW
-  setColor(255, 255, 255);
+
   displayTime();
+  colorForTimeOfDay();
 
 }
-
+//RGB color setting red, green, blue
 void setColor(int red, int green, int blue) {
 
   analogWrite(redPin, red);
   analogWrite(greenPin, green);
   analogWrite(bluePin, blue);
+
+}
+
+//set RGB color for each time of the day
+void colorForTimeOfDay() {
+  
+  RtcDateTime now = Rtc.GetDateTime();
+  int hour = now.Hour();
+
+  //morning color 0, 85, 255
+  if (hour >= 6 && hour < 9) {
+    setColor(0, 85, 255);
+  }
+
+  //late morning color 255, 85, 0
+  else if (hour >= 9 && hour < 12) {
+    setColor(255, 85, 0);
+  }
+
+  //noon color 0, 0, 255
+  else if (hour >= 12 && hour < 15) {
+    setColor(0, 0, 255);
+  }
+
+  //afternoon color 0, 153, 255
+  else if (hour >= 15 && hour < 18) {
+    setColor(0, 153, 255);
+  }
+
+  //evening color 0, 204, 255
+  else if (hour >= 18 && hour < 22) {
+    setColor(0, 204, 255);
+  }
+
+  //night color 204, 255, 85
+  else {
+    setColor(204, 255, 85);
+  }
 
 }
 
